@@ -107,15 +107,36 @@ class ASTNode:
                 return f"{self.value}"
             case (None, _):
                 body = self.right.tolambda()
-                return f"\\{self.value}.({body})"
+                return f"\\{self.value}.{body}"
             case (_, None):
                 body = self.left.tolambda()
-                return f"\\{self.value}.({body})"
+                return f"\\{self.value}.{body}"
             case (_, _):
                 l_lambda = self.left.tolambda()
                 r_lambda = self.right.tolambda()
                 return f"({l_lambda})({r_lambda})"
 
+    def n_applications(self):
+        match self.left, self.right:
+            case (None, None):
+                return 0
+            case (_, None):
+                return self.left.n_applications() + 1
+            case (None, _):
+                return self.right.n_applications() + 1
+            case (_, _):
+                return self.right.n_applications() + self.left.n_applications()
+
+    def n_abstractions(self):
+        match self.left, self.right:
+            case (None, None):
+                return 0
+            case (_, None):
+                return self.left.n_abstractions()
+            case (None, _):
+                return self.right.n_abstractions()
+            case (_, _):
+                return self.right.n_abstractions() + self.left.n_abstractions() + 1
 
 class AST:
     def __init__(self):
