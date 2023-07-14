@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import random
+import collections
 from typing import Any
 
 
@@ -10,6 +11,7 @@ class Tree:
         self.left: Tree = None
         self.right: Tree = None
         self.value: Any = None
+        self.id: int = 0
 
     def insert(self, value: int) -> Tree:
         if self.value is None:
@@ -95,11 +97,51 @@ class Tree:
             [a + u * ' ' + b for a, b in zipped_lines]
         return lines, n + m + u, max(p, q) + 2, n + u // 2
 
+    def edges_breadth(self):
+        queue = collections.deque([self])
+        while queue:
+            parent = queue.popleft()
+            for child in (parent.left, parent.right):
+                if child:
+                    yield ((parent.id, child.id))
+                    queue.append(child)
+
+    def vertices_breadth(self):
+        queue = collections.deque([self])
+        while queue:
+            parent = queue.popleft()
+            yield ((parent.id, parent.value))
+            for child in (parent.left, parent.right):
+                if child:
+                    queue.append(child)
+
+    def n_applications(self):
+        match self.left, self.right:
+            case (None, None):
+                return 0
+            case (_, None):
+                return self.left.n_applications() + 1
+            case (None, _):
+                return self.right.n_applications() + 1
+            case (_, _):
+                return self.right.n_applications() + self.left.n_applications()
+
+    def n_abstractions(self):
+        match self.left, self.right:
+            case (None, None):
+                return 0
+            case (_, None):
+                return self.left.n_abstractions()
+            case (None, _):
+                return self.right.n_abstractions()
+            case (_, _):
+                return self.right.n_abstractions() + self.left.n_abstractions() + 1
+
 
 class BtreeGen:
-    def __init__(self):
-        self.max_free_vars = 6
-        self.n_nodes = 20
+    def __init__(self, max_free_vars=6, n_nodes=20):
+        self.max_free_vars = max_free_vars
+        self.n_nodes = n_nodes
 
     def set_max_free_vars(self, n: int) -> BtreeGen:
         self.max_free_vars = n
@@ -113,13 +155,13 @@ class BtreeGen:
         match tree.left, tree.right:
             case (None, None):
                 max_label = self.max_free_vars if depth == 0 else depth
-                return f"x{random.randint(0, max_label)}"
+                return f"{chr(97 + random.randint(0, max_label))}"
             case (None, _):
                 body = self.tolambda(tree.right, depth + 1)
-                return f"\\x{depth + 1}.{body}"
+                return f"\\{chr(97 + depth + 1)}.{body}"
             case (_, None):
                 body = self.tolambda(tree.left, depth + 1)
-                return f"\\x{depth + 1}.{body}"
+                return f"\\{chr(97 + depth + 1)}.{body}"
             case (_, _):
                 l_lambda = self.tolambda(tree.left, depth)
                 r_lambda = self.tolambda(tree.right, depth)
@@ -131,6 +173,13 @@ class BtreeGen:
         for i in permutation:
             tree.insert(i)
         return self.tolambda(tree, 0)
+
+    def random_tree(self):
+        permutation = np.random.permutation(self.n_nodes)
+        tree = Tree()
+        for i in permutation:
+            tree.insert(i)
+        return tree
 
 
 def main():
