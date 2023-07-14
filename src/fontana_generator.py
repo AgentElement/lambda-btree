@@ -25,12 +25,17 @@ class Urn:
 
 
 class FontanaGen:
-    def __init__(self):
-        self.variables = list("abcdefghijklmnopqrstuvwzyz")
-        self.max_depth = 10
-        self.max_nvars = 6
-        self.application_prange = (0.3, 0.5)
-        self.abstraction_prange = (0.5, 0.3)
+    def __init__(self,
+                 max_depth=10,
+                 max_nvars=6,
+                 application_prange=(0.3, 0.5),
+                 abstraction_prange=(0.5, 0.3)):
+        #  self.variables = list("abcdefghijklmnopqrstuvwzyz")
+        self.variables = [f"x{i}" for i in range(26)]
+        self.max_depth = max_depth
+        self.max_nvars = max_nvars
+        self.application_prange = application_prange
+        self.abstraction_prange = abstraction_prange
         self.application_incr = self.get_application_incr()
         self.abstraction_incr = self.get_abstraction_incr()
 
@@ -97,6 +102,12 @@ class FontanaGen:
         init_p_appl = self.application_prange[0]
         ast = self.random_lambda_helper(0, init_p_abst, init_p_appl)
         return ast.tolambda()
+
+    def random_tree(self):
+        init_p_abst = self.abstraction_prange[0]
+        init_p_appl = self.application_prange[0]
+        ast = self.random_lambda_helper(0, init_p_abst, init_p_appl)
+        return ast
 
 
 def main():
