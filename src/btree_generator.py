@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import numpy as np
 import random
+from typing import Any
 
 
 class Tree:
@@ -34,9 +35,9 @@ class Tree:
             yield from self._r.traverse()
 
     def __str__(self) -> str:
-        l = "" if self.left is None else str(self.left)
-        r = "" if self.right is None else str(self.right)
-        return f"({l}{',' if l and r else ''}{r})"
+        left = "" if self.left is None else str(self.left)
+        right = "" if self.right is None else str(self.right)
+        return f"({left}{',' if left and right else ''}{right})"
 
     # display() and _display_aux() copied from
     # https://stackoverflow.com/a/54074933
@@ -94,45 +95,48 @@ class Tree:
             [a + u * ' ' + b for a, b in zipped_lines]
         return lines, n + m + u, max(p, q) + 2, n + u // 2
 
-    def tolambda_h(self, ldepth: int, nmax_free: int) -> str:
-        match self.left, self.right:
+
+class BtreeGen:
+    def __init__(self):
+        self.max_free_vars = 6
+        self.n_nodes = 20
+
+    def set_max_free_vars(self, n: int) -> BtreeGen:
+        self.max_free_vars = n
+        return self
+
+    def set_node_count(self, n: int) -> BtreeGen:
+        self.n_nodes = n
+        return self
+
+    def tolambda(self, tree: Tree, depth: int) -> str:
+        match tree.left, tree.right:
             case (None, None):
-                max_label = nmax_free if ldepth == 0 else ldepth
-                self.value = f"x{random.randint(0, max_label)}"
+                max_label = self.max_free_vars if depth == 0 else depth
+                return f"x{random.randint(0, max_label)}"
             case (None, _):
-                body = self.right.tolambda_h(ldepth + 1, nmax_free)
-                self.value = f"\\x{ldepth + 1}.({body})"
+                body = self.tolambda(tree.right, depth + 1)
+                return f"\\x{depth + 1}.{body}"
             case (_, None):
-                body = self.left.tolambda_h(ldepth + 1, nmax_free)
-                self.value = f"\\x{ldepth + 1}.({body})"
+                body = self.tolambda(tree.left, depth + 1)
+                return f"\\x{depth + 1}.{body}"
             case (_, _):
-                l_lambda = self.left.tolambda_h(ldepth, nmax_free)
-                r_lambda = self.right.tolambda_h(ldepth, nmax_free)
-                self.value = f"({l_lambda})({r_lambda})"
-        return self.value
+                l_lambda = self.tolambda(tree.left, depth)
+                r_lambda = self.tolambda(tree.right, depth)
+                return f"({l_lambda})({r_lambda})"
 
-    def tolambda(self, nmax_free: int) -> str:
-        return self.tolambda_h(0, nmax_free)
-
-
-def random_btree(n: int) -> random_btree.Tree:
-    permutation = np.random.permutation(n)
-    tree = Tree()
-    for i in permutation:
-        tree.insert(i)
-    return tree
+    def random_lambda(self):
+        permutation = np.random.permutation(self.n_nodes)
+        tree = Tree()
+        for i in permutation:
+            tree.insert(i)
+        return self.tolambda(tree, 0)
 
 
 def main():
-    NODES = 20
-    MAX_FREE_VARIABLES = 10
-    EXPRESSIONS = 1000
-
-    # If you need a single tree
-    #  tree = random_btree(NODES)
-
-    for i in range(EXPRESSIONS):
-        print(random_btree(NODES).tolambda(MAX_FREE_VARIABLES))
+    gen = BtreeGen()
+    for i in range(1000):
+        print(gen.random_lambda())
 
 
 if __name__ == '__main__':

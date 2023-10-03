@@ -1,129 +1,8 @@
 from __future__ import annotations
-from enum import Enum
 import re
 
-import collections
-
-
-class ASTNode:
-    def __init__(self, left: ASTNode, right: ASTNode):
-        self.left: ASTNode = left
-        self.right: ASTNode = right
-        self.value: Token.VAR = None
-        self.id: int = 0
-        self.depth: int = 0
-
-    def set_value(self, value: Token.VAR) -> ASTNode:
-        self.value = value.lexeme
-        return self
-
-    def set_depth(self, depth: int) -> ASTNode:
-        self.depth = depth
-        return self
-
-    def set_id(self, id: int) -> ASTNode:
-        self.id = id
-        return self
-
-    def __str__(self) -> str:
-        left = "" if self.left is None else str(self.left)
-        right = "" if self.right is None else str(self.right)
-        return f"({self.value}{left}{',' if left and right else ''}{right})"
-
-    # display() and _display_aux() copied from
-    # https://stackoverflow.com/a/54074933
-    def display(self):
-        lines, *_ = self._display_aux()
-        for line in lines:
-            print(line)
-
-    def _display_aux(self, ob=lambda x: x.id):
-        """Returns list of strings, width, height, and horizontal coordinate
-        of the root."""
-        # No child.
-        if self.right is None and self.left is None:
-            line = f"{ob(self)}"
-            width = len(line)
-            height = 1
-            middle = width // 2
-            return [line], width, height, middle
-
-        # Only left child.
-        if self.right is None:
-            lines, n, p, x = self.left._display_aux()
-            s = f"{ob(self)}"
-            u = len(s)
-            first_line = (x + 1) * ' ' + (n - x - 1) * '_' + s
-            second_line = x * ' ' + '/' + (n - x - 1 + u) * ' '
-            shifted_lines = [line + u * ' ' for line in lines]
-            return [first_line, second_line] + shifted_lines, n + u, p + 2, n + u // 2
-
-        # Only right child.
-        if self.left is None:
-            lines, n, p, x = self.right._display_aux()
-            s = f"{ob(self)}"
-            u = len(s)
-            first_line = s + x * '_' + (n - x) * ' '
-            second_line = (u + x) * ' ' + '\\' + (n - x - 1) * ' '
-            shifted_lines = [u * ' ' + line for line in lines]
-            return [first_line, second_line] + shifted_lines, n + u, p + 2, u // 2
-
-        # Two children.
-        left, n, p, x = self.left._display_aux()
-        right, m, q, y = self.right._display_aux()
-        s = f"{ob(self)}"
-        u = len(s)
-        first_line = (x + 1) * ' ' + (n - x - 1) * \
-            '_' + s + y * '_' + (m - y) * ' '
-        second_line = x * ' ' + '/' + \
-            (n - x - 1 + u + y) * ' ' + '\\' + (m - y - 1) * ' '
-        if p < q:
-            left += [n * ' '] * (q - p)
-        elif q < p:
-            right += [m * ' '] * (p - q)
-        zipped_lines = zip(left, right)
-        lines = [first_line, second_line] + \
-            [a + u * ' ' + b for a, b in zipped_lines]
-        return lines, n + m + u, max(p, q) + 2, n + u // 2
-
-    def edges_breadth(self):
-        queue = collections.deque([self])
-        while queue:
-            parent = queue.popleft()
-            for child in (parent.left, parent.right):
-                if child:
-                    yield ((parent.id, child.id))
-                    queue.append(child)
-
-    def vertices_breadth(self):
-        queue = collections.deque([self])
-        while queue:
-            parent = queue.popleft()
-            yield ((parent.id, parent.value))
-            for child in (parent.left, parent.right):
-                if child:
-                    queue.append(child)
-
-
-class TokenType(Enum):
-    LBRACE = 0
-    RBRACE = 1
-    LAMBDA = 2
-    DOT = 3
-    VAR = 4
-    EOF = 5
-
-
-class Token:
-    def __init__(self, t, lexeme=""):
-        self.tok_type = t
-        self.lexeme = lexeme
-
-    def __str__(self) -> str:
-        return f"({self.tok_type}" + (")" if self.lexeme == "" else f", {self.lexeme})")
-
-    def __repr__(self) -> str:
-        return str(self)
+from lambda_ast import ASTNode
+from lambda_token import Token, TokenType
 
 
 class LambdaLexer:
@@ -199,7 +78,7 @@ class LambdaParser:
 
         self.index += 1
 
-        node = ASTNode(ltree, None).set_value(lvar).set_id(self.index)
+        node = ASTNode(ltree, None).set_value(lvar.lexeme).set_id(self.index)
         return node
 
     def parse_term(self) -> ASTNode:
@@ -224,7 +103,7 @@ class LambdaParser:
             case TokenType.VAR:
                 lvar = self.lexer.eat(TokenType.VAR)
                 self.index += 1
-                node = ASTNode(None, None).set_value(lvar).set_id(self.index)
+                node = ASTNode(None, None).set_value(lvar.lexeme).set_id(self.index)
                 return node
             case _:
                 # "snytax rrrrrr" is a reference to Prof. Rida Bazzi
