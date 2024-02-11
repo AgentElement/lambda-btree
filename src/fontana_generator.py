@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from lambda_ast import ASTNode
+from src.lambda_ast import ASTNode
 
 import random
 

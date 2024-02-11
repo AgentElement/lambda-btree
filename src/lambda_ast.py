@@ -1,4 +1,5 @@
 from __future__ import annotations
+from ete3 import Tree
 import collections
 
 
@@ -137,6 +138,29 @@ class ASTNode:
                 return self.right.n_abstractions()
             case (_, _):
                 return self.right.n_abstractions() + self.left.n_abstractions() + 1
+
+    def to_ete3(self):
+        match self.left, self.right:
+            case (None, None):
+                return Tree(f"{self.value}:1.0;")
+            case (None, _):
+                body = self.right.to_ete3()
+                t = Tree(f"λ{self.value}:1.0;")
+                t.add_child(body)
+                return t
+            case (_, None):
+                body = self.left.to_ete3()
+                t = Tree(f"λ{self.value}:1.0;")
+                t.add_child(body)
+                return t
+            case (_, _):
+                lt = self.left.to_ete3()
+                rt = self.right.to_ete3()
+                t = Tree(":1.0;")
+                t.add_child(lt)
+                t.add_child(rt)
+                return t
+
 
 class AST:
     def __init__(self):

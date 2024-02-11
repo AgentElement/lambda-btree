@@ -1,8 +1,10 @@
 from __future__ import annotations
 import re
 
-from lambda_ast import ASTNode
-from lambda_token import Token, TokenType
+from src.lambda_ast import ASTNode
+from src.lambda_token import Token, TokenType
+
+from ete3 import Tree, TreeStyle
 
 
 class LambdaLexer:
@@ -114,7 +116,14 @@ def main():
     lexer = LambdaLexer("\ x . \ y . x y (x y)")
     parser = LambdaParser(lexer)
     ast = parser.parse()
-    ast.display()
+    t = ast.to_ete3()
+    ts = TreeStyle()
+    ts.mode = 'c'
+    ts.arc_start = -180 # 0 degrees = 3 o'clock
+    ts.arc_span = 180
+    ts.force_topology = True
+    t.show(tree_style=ts)
+    print(t.get_ascii(show_internal=True))
 
     print([e for e in ast.edges_breadth()])
     print([v for v in ast.vertices_breadth()])

@@ -3,6 +3,7 @@ from __future__ import annotations
 import numpy as np
 import random
 import collections
+import ete3
 from typing import Any
 
 
@@ -180,6 +181,9 @@ class BtreeGen:
         for i in permutation:
             tree.insert(i)
         return tree
+
+    def to_ete(self):
+        pass
 
 
 def main():
