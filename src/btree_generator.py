@@ -4,6 +4,10 @@ import numpy as np
 import random
 import collections
 import ete3
+import re
+
+random.seed(314159)
+
 from typing import Any
 
 
@@ -140,7 +144,7 @@ class Tree:
 
 
 class BtreeGen:
-    def __init__(self, max_free_vars=6, n_nodes=20):
+    def __init__(self, max_free_vars=0, n_nodes=20):
         self.max_free_vars = max_free_vars
         self.n_nodes = n_nodes
 
@@ -156,17 +160,17 @@ class BtreeGen:
         match tree.left, tree.right:
             case (None, None):
                 max_label = self.max_free_vars if depth == 0 else depth
-                return f"{chr(97 + random.randint(0, max_label))}"
+                return f"x{max_label}"
             case (None, _):
                 body = self.tolambda(tree.right, depth + 1)
-                return f"\\{chr(97 + depth + 1)}.{body}"
+                return f"\\x{depth + 1}.{body}"
             case (_, None):
                 body = self.tolambda(tree.left, depth + 1)
-                return f"\\{chr(97 + depth + 1)}.{body}"
+                return f"\\x{depth + 1}.{body}"
             case (_, _):
                 l_lambda = self.tolambda(tree.left, depth)
                 r_lambda = self.tolambda(tree.right, depth)
-                return f"({l_lambda})({r_lambda})"
+                return f"({l_lambda}){r_lambda}"
 
     def random_lambda(self):
         permutation = np.random.permutation(self.n_nodes)
@@ -188,8 +192,11 @@ class BtreeGen:
 
 def main():
     gen = BtreeGen()
-    for i in range(1000):
-        print(gen.random_lambda())
+    print("1\n")
+    for i in range(100000):
+        s = gen.random_lambda()
+        s = "eval " + s + ";"
+        print(s)
 
 
 if __name__ == '__main__':
