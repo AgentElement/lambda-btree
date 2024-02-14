@@ -159,8 +159,10 @@ class BtreeGen:
     def tolambda(self, tree: Tree, depth: int) -> str:
         match tree.left, tree.right:
             case (None, None):
-                max_label = self.max_free_vars if depth == 0 else depth
-                return f"x{max_label}"
+                if depth == 0:
+                    return "\\x0.x0"
+                else:
+                    return f"x{depth}"
             case (None, _):
                 body = self.tolambda(tree.right, depth + 1)
                 return f"\\x{depth + 1}.{body}"
