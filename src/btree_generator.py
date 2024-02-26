@@ -1,4 +1,5 @@
 from __future__ import annotations
+from typing import Any
 
 import numpy as np
 import random
@@ -6,9 +7,14 @@ import collections
 import ete3
 import re
 
+from enum import Enum
+
 random.seed(314159)
 
-from typing import Any
+
+class Standardization(Enum):
+    POSTFIX = 0
+    PREFIX = 1
 
 
 class Tree:
@@ -156,30 +162,49 @@ class BtreeGen:
         self.n_nodes = n
         return self
 
-    def tolambda(self, tree: Tree, depth: int) -> str:
+    def has_free_variables(self, tree: Tree):
+        match tree.left, tree.right:
+            case (None, None):
+                return True
+            case (None, _) | (_, None):
+                return False
+            case (_, _):
+                return self.has_free_variables(tree.right) \
+                    or self.has_free_variables(tree.left)
+
+    def tolambda_h(self, tree: Tree, depth: int, std: Standardization) -> str:
         match tree.left, tree.right:
             case (None, None):
                 if depth == 0:
-                    return "\\x0.x0"
+                    if std == Standardization.POSTFIX:
+                        return "\\x0.x0"
+                    elif std == Standardization.PREFIX:
+                        return "x0"
                 else:
                     return f"x{depth}"
             case (None, _):
-                body = self.tolambda(tree.right, depth + 1)
+                body = self.tolambda_h(tree.right, depth + 1, std)
                 return f"\\x{depth + 1}.{body}"
             case (_, None):
-                body = self.tolambda(tree.left, depth + 1)
+                body = self.tolambda_h(tree.left, depth + 1, std)
                 return f"\\x{depth + 1}.{body}"
             case (_, _):
-                l_lambda = self.tolambda(tree.left, depth)
-                r_lambda = self.tolambda(tree.right, depth)
+                l_lambda = self.tolambda_h(tree.left, depth, std)
+                r_lambda = self.tolambda_h(tree.right, depth, std)
                 return f"({l_lambda}){r_lambda}"
+
+    def tolambda(self, tree):
+        ret = self.tolambda_h(tree, 0, Standardization.PREFIX)
+        if self.has_free_variables(tree):
+            ret = f"\\x0.{ret}"
+        return ret
 
     def random_lambda(self):
         permutation = np.random.permutation(self.n_nodes)
         tree = Tree()
         for i in permutation:
             tree.insert(i)
-        return self.tolambda(tree, 0)
+        return self.tolambda(tree)
 
     def random_tree(self):
         permutation = np.random.permutation(self.n_nodes)
