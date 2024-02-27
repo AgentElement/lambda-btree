@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from src.lambda_ast import ASTNode
+from lambda_ast import ASTNode
 
 import random
 
@@ -112,8 +112,11 @@ class FontanaGen:
 
 def main():
     gen = FontanaGen()
-    for i in range(1000):
-        print(gen.random_lambda())
+    print("1\n")
+    for i in range(100000):
+        s = gen.random_lambda()
+        s = "eval " + s + ";"
+        print(s)
 
 
 if __name__ == "__main__":
