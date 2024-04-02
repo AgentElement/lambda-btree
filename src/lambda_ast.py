@@ -1,5 +1,5 @@
 from __future__ import annotations
-from ete3 import Tree
+# from ete3 import Tree
 import collections
 
 
@@ -10,6 +10,7 @@ class ASTNode:
         self.value: str = None
         self.id: int = 0
         self.depth: int = 0
+        self.is_free = False
 
     def set_value(self, value: str) -> ASTNode:
         self.value = value
@@ -22,6 +23,7 @@ class ASTNode:
     def set_id(self, id: int) -> ASTNode:
         self.id = id
         return self
+
 
     def __str__(self) -> str:
         left = "" if self.left is None else str(self.left)
@@ -160,6 +162,30 @@ class ASTNode:
                 t.add_child(lt)
                 t.add_child(rt)
                 return t
+    
+    def has_free_variables(self, tree: Tree):
+        match tree.left, tree.right:
+            case (None, None):
+                return True
+            case (None, _) | (_, None):
+                return False
+            case (_, _):
+                return self.has_free_variables(tree.right) \
+                    or self.has_free_variables(tree.left)
+
+
+    def search_for_value(self, value):
+        match self.left, self.right:
+            case (None, None):
+                return self.value == value
+            case (None, _):
+                return self.right.search_for_value(value)
+            case (_, None):
+                return self.left.search_for_value(value)
+            case (_, _):
+                return self.right.search_for_value(value) \
+                       or self.left.search_for_value(value)
+
 
 
 class AST:
