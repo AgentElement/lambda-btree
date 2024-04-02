@@ -114,6 +114,9 @@ class BtreeGen:
 
     def prefix_standardize(self, tree: ASTNode) -> ASTNode:
         node = tree
+        if tree.must_have_free_variables():
+            node = ASTNode(node, None).set_value("\\x0")
+            pass
         for i in range(self.max_free_vars + 1):
             freevar_value = chr(97 + i)
             if tree.search_for_value(freevar_value):
@@ -137,11 +140,11 @@ class BtreeGen:
         match (tree.left, tree.right):
             case (None, None):
                 coin = random.random() < self.freevar_p
-                if coin:
+                if coin or tree.depth == 0:
                     random_freevar = chr(97 + random.randint(0, self.max_free_vars))
                     return ASTNode(None, None).set_value(random_freevar)
                 else:
-                    random_variable = f"x{random.randint(0, tree.depth)}"
+                    random_variable = f"x{random.randint(0, tree.depth - 1 if tree.depth != 0 else 0)}"
                     return ASTNode(None, None).set_value(random_variable)
             case (_, None):
                 subtree = self.annotate_tree(tree.left)
@@ -166,9 +169,9 @@ class BtreeGen:
 
 
 def main():
-    gen = BtreeGen(std=Standardization.POSTFIX)
+    gen = BtreeGen(n_nodes=40, std=Standardization.PREFIX)
     print("1\n")
-    for i in range(10):
+    for i in range(10000):
         s = gen.random_lambda()
         s = "eval " + s + ";"
         print(s)

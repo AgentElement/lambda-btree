@@ -117,7 +117,7 @@ class ASTNode:
             case (_, _):
                 l_lambda = self.left.tolambda()
                 r_lambda = self.right.tolambda()
-                return f"({l_lambda})({r_lambda})"
+                return f"({l_lambda}){r_lambda}"
 
     def n_applications(self):
         match self.left, self.right:
@@ -163,15 +163,15 @@ class ASTNode:
                 t.add_child(rt)
                 return t
     
-    def has_free_variables(self, tree: Tree):
-        match tree.left, tree.right:
+    def must_have_free_variables(self):
+        match self.left, self.right:
             case (None, None):
                 return True
             case (None, _) | (_, None):
                 return False
             case (_, _):
-                return self.has_free_variables(tree.right) \
-                    or self.has_free_variables(tree.left)
+                return self.left.must_have_free_variables() \
+                    or self.right.must_have_free_variables()
 
 
     def search_for_value(self, value):
