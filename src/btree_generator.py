@@ -92,7 +92,25 @@ class BtreeGen:
         return self
 
     def postfix_standardize(self, tree: ASTNode) -> ASTNode:
-        pass
+        def one_step_lookahead(tree):
+            match tree.left, tree.right:
+                case (None, None):
+                    return True
+                case (None, _) | (_, None) | (_, _):
+                    return False
+
+        if tree.right is not None:
+            if one_step_lookahead(tree.right) and tree.right.value.isalpha():
+                tree.right = ASTNode(tree.right, None).set_value(tree.right.value)
+            else:
+                self.postfix_standardize(tree.right)
+        
+        if tree.left is not None:
+            if one_step_lookahead(tree.left) and tree.left.value.isalpha():
+                tree.left = ASTNode(tree.left, None).set_value(tree.left.value)
+            else:
+                self.postfix_standardize(tree.left)
+        return tree
 
     def prefix_standardize(self, tree: ASTNode) -> ASTNode:
         node = tree
@@ -148,7 +166,7 @@ class BtreeGen:
 
 
 def main():
-    gen = BtreeGen()
+    gen = BtreeGen(std=Standardization.POSTFIX)
     print("1\n")
     for i in range(10):
         s = gen.random_lambda()
