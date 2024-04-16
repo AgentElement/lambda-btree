@@ -11,6 +11,8 @@ from enum import Enum
 
 from lambda_ast import ASTNode
 
+import utils
+
 random.seed(314159)
 
 
@@ -170,11 +172,7 @@ class BtreeGen:
 
 def main():
     gen = BtreeGen(n_nodes=40, std=Standardization.PREFIX)
-    print("1\n")
-    for i in range(10000):
-        s = gen.random_lambda()
-        s = "eval " + s + ";"
-        print(s)
+    utils.dump_gen(gen, 100000)
 
 
 if __name__ == '__main__':

@@ -4,6 +4,7 @@ from lambda_ast import ASTNode
 
 import random
 
+import utils
 
 class Urn:
     # RNG used in Fontana's original generator. This is currently unused.
@@ -111,12 +112,7 @@ class FontanaGen:
 
 
 def main():
-    gen = FontanaGen()
-    print("1\n")
-    for i in range(100000):
-        s = gen.random_lambda()
-        s = "eval " + s + ";"
-        print(s)
+    utils.dump_gen(FontanaGen(), 100000)
 
 
 if __name__ == "__main__":
