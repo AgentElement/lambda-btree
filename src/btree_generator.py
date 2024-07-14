@@ -117,7 +117,7 @@ class BtreeGen:
     def prefix_standardize(self, tree: ASTNode) -> ASTNode:
         node = tree
         if tree.must_have_free_variables():
-            node = ASTNode(node, None).set_value("\\x0")
+            node = ASTNode(node, None).set_value(r"x0")
             pass
         for i in range(self.max_free_vars + 1):
             freevar_value = chr(97 + i)
