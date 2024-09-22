@@ -112,6 +112,7 @@ class FontanaGen:
 
 
 def main():
+    random.seed(10000)
     utils.dump_gen(FontanaGen(), 100000)
 
 

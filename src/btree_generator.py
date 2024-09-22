@@ -24,8 +24,8 @@ class Standardization(Enum):
 
 class PermutationTree:
     def __init__(self):
-        self.left: PermutationTree = None
-        self.right: PermutationTree = None
+        self.left: PermutationTree | None = None
+        self.right: PermutationTree | None = None
         self.value: Any = None
         self.id: int = 0
         self.depth = 0

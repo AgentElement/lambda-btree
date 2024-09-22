@@ -1,16 +1,24 @@
 from __future__ import annotations
 # from ete3 import Tree
 import collections
+import enum
+
+class NodeType(enum.Enum):
+    Application = 0
+    Abstraction = 1
+    BoundVariable = 2
+    FreeVariable = 3
 
 
 class ASTNode:
     def __init__(self, left: ASTNode, right: ASTNode):
-        self.left: ASTNode = left
-        self.right: ASTNode = right
-        self.value: str = None
+        self.left: ASTNode | None = left
+        self.right: ASTNode | None = right
+        self.value: str | None = None
         self.id: int = 0
         self.depth: int = 0
         self.is_free = False
+        self.bound_children = set()
 
     def set_value(self, value: str) -> ASTNode:
         self.value = value

@@ -58,11 +58,11 @@ class LambdaParser:
     def __init__(self, lex: LambdaLexer):
         self.lexer = lex
 
-    # We use the following grammar:
-    # abs := \ id . term
-    # term := lambda | lambda term
-    # lambda := abs | ( term ) | id
-    # main := lambda EOF
+        # We use the following grammar:
+        # abs := \ id . term
+        # term := lambda | lambda term
+        # lambda := abs | ( term ) | id
+        # main := lambda EOF
         self.index = 0
 
     def parse(self) -> ASTNode:
@@ -86,7 +86,11 @@ class LambdaParser:
     def parse_term(self) -> ASTNode:
         ltree = self.parse_lambda()
         rtree = None
-        if self.lexer.peek(1).tok_type in {TokenType.LAMBDA, TokenType.LBRACE, TokenType.VAR}:
+        if self.lexer.peek(1).tok_type in {
+            TokenType.LAMBDA,
+            TokenType.LBRACE,
+            TokenType.VAR,
+        }:
             rtree = self.parse_term()
             self.index += 1
             return ASTNode(ltree, rtree).set_id(self.index)
@@ -113,13 +117,13 @@ class LambdaParser:
 
 
 def main():
-    lexer = LambdaLexer("\ x . \ y . x y (x y)")
+    lexer = LambdaLexer(r"\ x . \ y . x y (x y)")
     parser = LambdaParser(lexer)
     ast = parser.parse()
     t = ast.to_ete3()
     ts = TreeStyle()
-    ts.mode = 'c'
-    ts.arc_start = -180 # 0 degrees = 3 o'clock
+    ts.mode = "c"
+    ts.arc_start = -180  # 0 degrees = 3 o'clock
     ts.arc_span = 180
     ts.force_topology = True
     t.show(tree_style=ts)
@@ -129,5 +133,5 @@ def main():
     print([v for v in ast.vertices_breadth()])
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     main()
